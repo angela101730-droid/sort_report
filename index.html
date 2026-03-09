@@ -2,28 +2,38 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>氣泡排序法視覺化 - 帶重置功能</title>
+    <title>氣泡排序視覺化 - 自訂顏色版</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f0f2f5; }
+        :root {
+            --primary-color: #3498db; /* 預設顏色 */
+        }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f0f2f5; }
         .container { display: flex; align-items: flex-end; height: 250px; gap: 8px; margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .bar { width: 35px; background-color: #3498db; text-align: center; color: white; font-size: 14px; font-weight: bold; border-radius: 4px 4px 0 0; transition: height 0.2s, background-color 0.2s; position: relative; }
-        .bar.comparing { background-color: #e74c3c; transform: scaleX(1.1); }
-        .bar.sorted { background-color: #2ecc71; }
-        .controls { display: flex; gap: 15px; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 6px; transition: 0.3s; }
-        button:hover { background: #34495e; }
+        .bar { width: 35px; background-color: var(--primary-color); text-align: center; color: white; font-size: 14px; font-weight: bold; border-radius: 4px 4px 0 0; transition: height 0.2s, background-color 0.2s; }
+        .bar.comparing { background-color: #e74c3c !important; transform: scaleX(1.1); }
+        .bar.sorted { background-color: #2ecc71 !important; }
+        
+        .controls { display: flex; align-items: center; gap: 15px; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .color-picker-group { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #7f8c8d; }
+        input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; }
+        
+        button { padding: 10px 20px; font-size: 14px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 20px; transition: 0.3s; }
+        button:hover { background: #34495e; opacity: 0.9; }
         button:disabled { background: #bdc3c7; cursor: not-allowed; }
-        #reset-btn { background: #95a5a6; }
     </style>
 </head>
 <body>
 
-    <h2>氣泡排序法 (Bubble Sort) 演示</h2>
+    <h2>氣泡排序法視覺化</h2>
     <div class="container" id="bar-container"></div>
     
     <div class="controls">
+        <div class="color-picker-group">
+            <label>選擇主色：</label>
+            <input type="color" id="color-picker" value="#3498db" onchange="changeColor(this.value)">
+        </div>
         <button id="start-btn" onclick="startSort()">開始排序</button>
-        <button id="reset-btn" onclick="resetData()">重新開始</button>
+        <button id="reset-btn" onclick="resetData()">隨機重置</button>
     </div>
 
     <script>
@@ -31,16 +41,21 @@
         const container = document.getElementById('bar-container');
         const startBtn = document.getElementById('start-btn');
         const resetBtn = document.getElementById('reset-btn');
+        const colorPicker = document.getElementById('color-picker');
 
-        // 初始化或隨機生成數據
-        function resetData() {
-            // 生成 8 個 10-100 之間的隨機數
-            data = Array.from({ length: 8 }, () => Math.floor(Math.random() * 90) + 10);
-            renderBars();
-            startBtn.disabled = false;
+        function changeColor(color) {
+            document.documentElement.style.setProperty('--primary-color', color);
         }
 
-        // 渲染長條圖
+        function resetData() {
+            data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
+            renderBars();
+            startBtn.disabled = false;
+            // 重置時清除所有長條的 sorted 狀態
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(b => b.classList.remove('sorted'));
+        }
+
         function renderBars() {
             container.innerHTML = '';
             data.forEach(value => {
@@ -56,7 +71,8 @@
 
         async function startSort() {
             startBtn.disabled = true;
-            resetBtn.disabled = true; // 排序時不建議重置，避免邏輯衝突
+            resetBtn.disabled = true;
+            colorPicker.disabled = true;
             
             const bars = document.querySelectorAll('.bar');
             const n = data.length;
@@ -66,26 +82,23 @@
                     bars[j].classList.add('comparing');
                     bars[j + 1].classList.add('comparing');
 
-                    await sleep(200);
+                    await sleep(150);
 
                     if (data[j] > data[j + 1]) {
-                        // 交換邏輯
                         [data[j], data[j + 1]] = [data[j + 1], data[j]];
-                        
-                        // 更新 DOM 狀態
                         updateBar(bars[j], data[j]);
                         updateBar(bars[j+1], data[j+1]);
                     }
 
-                    await sleep(100);
+                    await sleep(50);
                     bars[j].classList.remove('comparing');
                     bars[j + 1].classList.remove('comparing');
                 }
-                // 標示該輪已就位的最大值
                 bars[n - i - 1].classList.add('sorted');
             }
             bars[0].classList.add('sorted');
             resetBtn.disabled = false;
+            colorPicker.disabled = false;
         }
 
         function updateBar(barElement, value) {
@@ -93,7 +106,6 @@
             barElement.innerText = value;
         }
 
-        // 頁面載入時初始化
         resetData();
     </script>
 </body>

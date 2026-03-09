@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>氣泡排序法視覺化</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f4f4f9; }
+        .container { display: flex; align-items: flex-end; height: 200px; gap: 5px; margin-bottom: 20px; }
+        .bar { width: 30px; background-color: #3498db; text-align: center; color: white; font-size: 12px; transition: height 0.3s, background-color 0.3s; }
+        .bar.comparing { background-color: #e74c3c; } /* 正在比較的顏色 */
+        .bar.sorted { background-color: #2ecc71; }    /* 已排序完成的顏色 */
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>氣泡排序法 (Bubble Sort) 演示</h2>
+    <div class="container" id="bar-container"></div>
+    <button onclick="bubbleSort()">開始排序</button>
+
+    <script>
+        const data = [45, 20, 10, 80, 55, 30, 90, 15];
+        const container = document.getElementById('bar-container');
+
+        // 初始化長條圖
+        function initBars() {
+            container.innerHTML = '';
+            data.forEach(value => {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                bar.style.height = `${value * 2}px`;
+                bar.innerText = value;
+                container.appendChild(bar);
+            });
+        }
+
+        // 延遲函數，用來製造動畫效果
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function bubbleSort() {
+            const bars = document.querySelectorAll('.bar');
+            const n = data.length;
+
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    // 標示正在比較的兩個元素
+                    bars[j].classList.add('comparing');
+                    bars[j + 1].classList.add('comparing');
+
+                    await sleep(300); // 停頓以便觀察
+
+                    if (data[j] > data[j + 1]) {
+                        // 交換數據
+                        [data[j], data[j + 1]] = [data[j + 1], data[j]];
+                        
+                        // 更新畫面高度與文字
+                        bars[j].style.height = `${data[j] * 2}px`;
+                        bars[j].innerText = data[j];
+                        bars[j + 1].style.height = `${data[j + 1] * 2}px`;
+                        bars[j + 1].innerText = data[j + 1];
+                    }
+
+                    bars[j].classList.remove('comparing');
+                    bars[j + 1].classList.remove('comparing');
+                }
+                // 標示每一輪最後一個已排序好的元素
+                bars[n - i - 1].classList.add('sorted');
+            }
+            bars[0].classList.add('sorted');
+        }
+
+        initBars();
+    </script>
+</body>
+</html>

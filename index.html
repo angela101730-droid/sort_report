@@ -2,111 +2,40 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>氣泡排序視覺化 - 自訂顏色版</title>
+    <title>Bubble Sort Visualizer</title>
     <style>
-        :root {
-            --primary-color: #3498db; /* 預設顏色 */
-        }
-        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f0f2f5; }
-        .container { display: flex; align-items: flex-end; height: 250px; gap: 8px; margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .bar { width: 35px; background-color: var(--primary-color); text-align: center; color: white; font-size: 14px; font-weight: bold; border-radius: 4px 4px 0 0; transition: height 0.2s, background-color 0.2s; }
-        .bar.comparing { background-color: #e74c3c !important; transform: scaleX(1.1); }
-        .bar.sorted { background-color: #2ecc71 !important; }
-        
-        .controls { display: flex; align-items: center; gap: 15px; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .color-picker-group { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #7f8c8d; }
-        input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; }
-        
-        button { padding: 10px 20px; font-size: 14px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 20px; transition: 0.3s; }
-        button:hover { background: #34495e; opacity: 0.9; }
-        button:disabled { background: #bdc3c7; cursor: not-allowed; }
+        :root { --primary-color: #3498db; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f8f9fa; padding: 50px; }
+        .bar-container { display: flex; align-items: flex-end; height: 200px; gap: 5px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .bar { width: 30px; background: var(--primary-color); color: white; text-align: center; font-size: 12px; transition: 0.2s; border-radius: 3px 3px 0 0; }
+        .comparing { background: #e74c3c !important; }
+        .sorted { background: #2ecc71 !important; }
+        .controls { margin-top: 30px; display: flex; gap: 15px; align-items: center; }
+        button { padding: 10px 20px; cursor: pointer; border-radius: 5px; border: none; background: #2c3e50; color: white; }
     </style>
 </head>
 <body>
-
-    <h2>氣泡排序法視覺化</h2>
-    <div class="container" id="bar-container"></div>
-    
+    <h2>氣泡排序法視覺化作業</h2>
+    <div class="bar-container" id="container"></div>
     <div class="controls">
-        <div class="color-picker-group">
-            <label>選擇主色：</label>
-            <input type="color" id="color-picker" value="#3498db" onchange="changeColor(this.value)">
-        </div>
-        <button id="start-btn" onclick="startSort()">開始排序</button>
-        <button id="reset-btn" onclick="resetData()">隨機重置</button>
+        <input type="color" id="picker" value="#3498db" onchange="document.documentElement.style.setProperty('--primary-color', this.value)">
+        <button onclick="startSort()" id="btn-start">開始排序</button>
+        <button onclick="init()">重新生成</button>
     </div>
-
     <script>
-        let data = [];
-        const container = document.getElementById('bar-container');
-        const startBtn = document.getElementById('start-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const colorPicker = document.getElementById('color-picker');
-
-        function changeColor(color) {
-            document.documentElement.style.setProperty('--primary-color', color);
+        let arr = [];
+        const container = document.getElementById('container');
+        function init() {
+            arr = Array.from({length: 10}, () => Math.floor(Math.random() * 90) + 10);
+            container.innerHTML = arr.map(v => `<div class="bar" style="height:${v*2}px">${v}</div>`).join('');
+            document.getElementById('btn-start').disabled = false;
         }
-
-        function resetData() {
-            data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
-            renderBars();
-            startBtn.disabled = false;
-            // 重置時清除所有長條的 sorted 狀態
-            const bars = document.querySelectorAll('.bar');
-            bars.forEach(b => b.classList.remove('sorted'));
-        }
-
-        function renderBars() {
-            container.innerHTML = '';
-            data.forEach(value => {
-                const bar = document.createElement('div');
-                bar.classList.add('bar');
-                bar.style.height = `${value * 2}px`;
-                bar.innerText = value;
-                container.appendChild(bar);
-            });
-        }
-
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
         async function startSort() {
-            startBtn.disabled = true;
-            resetBtn.disabled = true;
-            colorPicker.disabled = true;
-            
+            document.getElementById('btn-start').disabled = true;
             const bars = document.querySelectorAll('.bar');
-            const n = data.length;
-
-            for (let i = 0; i < n - 1; i++) {
-                for (let j = 0; j < n - i - 1; j++) {
-                    bars[j].classList.add('comparing');
-                    bars[j + 1].classList.add('comparing');
-
-                    await sleep(150);
-
-                    if (data[j] > data[j + 1]) {
-                        [data[j], data[j + 1]] = [data[j + 1], data[j]];
-                        updateBar(bars[j], data[j]);
-                        updateBar(bars[j+1], data[j+1]);
-                    }
-
-                    await sleep(50);
-                    bars[j].classList.remove('comparing');
-                    bars[j + 1].classList.remove('comparing');
-                }
-                bars[n - i - 1].classList.add('sorted');
-            }
-            bars[0].classList.add('sorted');
-            resetBtn.disabled = false;
-            colorPicker.disabled = false;
-        }
-
-        function updateBar(barElement, value) {
-            barElement.style.height = `${value * 2}px`;
-            barElement.innerText = value;
-        }
-
-        resetData();
-    </script>
-</body>
-</html>
+            for(let i=0; i<arr.length; i++) {
+                for(let j=0; j<arr.length-i-1; j++) {
+                    bars[j].classList.add('comparing'); bars[j+1].classList.add('comparing');
+                    await new Promise(r => setTimeout(r, 100));
+                    if(arr[j] > arr[j+1]) {
+                        [arr[j], arr

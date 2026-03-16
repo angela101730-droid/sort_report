@@ -1,190 +1,194 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>氣泡排序視覺化</title>
-
-<style>
-
-:root{
---primary-color:#3498db;
-}
-
-body{
-font-family:Segoe UI;
-display:flex;
-flex-direction:column;
-align-items:center;
-padding-top:50px;
-background:#f0f2f5;
-}
-
-.container{
-display:flex;
-align-items:flex-end;
-height:250px;
-gap:8px;
-margin-bottom:30px;
-padding:20px;
-background:white;
-border-radius:8px;
-box-shadow:0 4px 6px rgba(0,0,0,0.1);
-}
-
-.bar{
-width:35px;
-background:var(--primary-color);
-text-align:center;
-color:white;
-font-weight:bold;
-border-radius:4px 4px 0 0;
-transition:0.2s;
-}
-
-.bar.comparing{
-background:#e74c3c !important;
-}
-
-.bar.sorted{
-background:#2ecc71 !important;
-}
-
-.controls{
-display:flex;
-gap:15px;
-background:white;
-padding:15px 25px;
-border-radius:50px;
-box-shadow:0 2px 4px rgba(0,0,0,0.05);
-}
-
-button{
-padding:10px 20px;
-border:none;
-border-radius:20px;
-background:#2c3e50;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#34495e;
-}
-
-button:disabled{
-background:#bdc3c7;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <title>氣泡排序視覺化 - 自訂顏色版</title>
+    <style>
+        :root {
+            --primary-color: #3498db; /* 預設顏色 */
+        }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; background: #f0f2f5; }
+        .container { display: flex; align-items: flex-end; height: 250px; gap: 8px; margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .bar { width: 35px; background-color: var(--primary-color); text-align: center; color: white; font-size: 14px; font-weight: bold; border-radius: 4px 4px 0 0; transition: height 0.2s, background-color 0.2s; }
+        .bar.comparing { background-color: #e74c3c !important; transform: scaleX(1.1); }
+        .bar.sorted { background-color: #2ecc71 !important; }
+        
+        .controls { display: flex; align-items: center; gap: 15px; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .color-picker-group { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #7f8c8d; }
+        input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; }
+        
+        button { padding: 10px 20px; font-size: 14px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 20px; transition: 0.3s; }
+        button:hover { background: #34495e; opacity: 0.9; }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; }
+    </style>
 </head>
-
 <body>
 
-<h2>氣泡排序視覺化</h2>
+    <h2>氣泡排序法視覺化</h2>
+    <div class="container" id="bar-container"></div>
+    
+    <div class="controls">
+        <button onclick="goHome()">回首頁</button>
+        <div class="color-picker-group">
+            <label>選擇主色：</label>
+            <input type="color" id="color-picker" value="#3498db" onchange="changeColor(this.value)">
+        </div>
+        <button id="start-btn" onclick="startSort()">開始排序</button>
+        <button id="step-btn" onclick="stepSort()" disabled>下一步</button>
+        <button id="reset-btn" onclick="resetData()">隨機重置</button>
+    </div>
 
-<div class="container" id="bar-container"></div>
+    <script>
+        let data = [];
+        const container = document.getElementById('bar-container');
+        const startBtn = document.getElementById('start-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const colorPicker = document.getElementById('color-picker');
 
-<div class="controls">
+        // 排序狀態變量
+        let isSorting = false;
+        let currentI = 0;
+        let currentJ = 0;
+        let bars = [];
 
-<button onclick="goHome()">回首頁</button>
+        function goHome() {
+            window.location.href = 'bubble-sort-entry.html';
+        }
 
-<button id="start-btn" onclick="startSort()">開始排序</button>
+        function changeColor(color) {
+            document.documentElement.style.setProperty('--primary-color', color);
+        }
 
-<button id="reset-btn" onclick="resetData()">隨機重置</button>
+        function resetData() {
+            data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
+            renderBars();
+            startBtn.disabled = false;
+            stepBtn.disabled = false;
+            resetBtn.disabled = false;
+            colorPicker.disabled = false;
+            isSorting = false;
+            currentI = 0;
+            currentJ = 0;
+            // 重置時清除所有長條的 sorted 狀態
+            bars.forEach(b => b.classList.remove('sorted', 'comparing'));
+        }
 
-</div>
+        function renderBars() {
+            container.innerHTML = '';
+            bars = [];
+            data.forEach(value => {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                bar.style.height = `${value * 2}px`;
+                bar.innerText = value;
+                container.appendChild(bar);
+                bars.push(bar);
+            });
+        }
 
-<script>
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-let data=[];
-let bars=[];
+        async function startSort() {
+            if (isSorting) return;
+            isSorting = true;
+            startBtn.disabled = true;
+            stepBtn.disabled = true;
+            resetBtn.disabled = true;
+            colorPicker.disabled = true;
+            
+            // 重置排序狀態
+            currentI = 0;
+            currentJ = 0;
+            bars.forEach(b => b.classList.remove('sorted', 'comparing'));
+            
+            const n = data.length;
 
-const container=document.getElementById("bar-container");
+            for (let i = currentI; i < n - 1; i++) {
+                for (let j = (i === currentI ? currentJ : 0); j < n - i - 1; j++) {
+                    bars[j].classList.add('comparing');
+                    bars[j + 1].classList.add('comparing');
 
-function goHome(){
-window.location.href="index.html";
-}
+                    await sleep(150);
 
-function resetData(){
+                    if (data[j] > data[j + 1]) {
+                        [data[j], data[j + 1]] = [data[j + 1], data[j]];
+                        updateBar(bars[j], data[j]);
+                        updateBar(bars[j+1], data[j+1]);
+                    }
 
-data=Array.from({length:10},()=>Math.floor(Math.random()*90)+10);
+                    await sleep(50);
+                    bars[j].classList.remove('comparing');
+                    bars[j + 1].classList.remove('comparing');
+                }
+                bars[n - i - 1].classList.add('sorted');
+            }
+            bars[0].classList.add('sorted');
+            isSorting = false;
+            resetBtn.disabled = false;
+            colorPicker.disabled = false;
+        }
 
-renderBars();
+        async function stepSort() {
+            if (isSorting) return;
+            isSorting = true;
+            startBtn.disabled = true;
+            resetBtn.disabled = true;
+            colorPicker.disabled = true;
+            
+            const n = data.length;
 
-}
+            if (currentI >= n - 1) {
+                // 排序完成
+                bars.forEach((bar, index) => {
+                    if (index <= n - currentI - 1) bar.classList.add('sorted');
+                });
+                stepBtn.disabled = true;
+                resetBtn.disabled = false;
+                colorPicker.disabled = false;
+                isSorting = false;
+                return;
+            }
 
-function renderBars(){
+            // 執行一步比較
+            bars[currentJ].classList.add('comparing');
+            bars[currentJ + 1].classList.add('comparing');
 
-container.innerHTML="";
-bars=[];
+            await sleep(150);
 
-data.forEach(v=>{
+            if (data[currentJ] > data[currentJ + 1]) {
+                [data[currentJ], data[currentJ + 1]] = [data[currentJ + 1], data[currentJ]];
+                updateBar(bars[currentJ], data[currentJ]);
+                updateBar(bars[currentJ + 1], data[currentJ + 1]);
+            }
 
-let bar=document.createElement("div");
+            await sleep(50);
+            bars[currentJ].classList.remove('comparing');
+            bars[currentJ + 1].classList.remove('comparing');
 
-bar.classList.add("bar");
+            // 更新索引
+            currentJ++;
+            if (currentJ >= n - currentI - 1) {
+                bars[n - currentI - 1].classList.add('sorted');
+                currentJ = 0;
+                currentI++;
+            }
 
-bar.style.height=v*2+"px";
+            isSorting = false;
+            if (currentI >= n - 1) {
+                bars[0].classList.add('sorted');
+                stepBtn.disabled = true;
+                resetBtn.disabled = false;
+                colorPicker.disabled = false;
+            }
+        }
 
-bar.innerText=v;
+        function updateBar(barElement, value) {
+            barElement.style.height = `${value * 2}px`;
+            barElement.innerText = value;
+        }
 
-container.appendChild(bar);
-
-bars.push(bar);
-
-});
-
-}
-
-function sleep(ms){
-return new Promise(r=>setTimeout(r,ms));
-}
-
-async function startSort(){
-
-let n=data.length;
-
-for(let i=0;i<n-1;i++){
-
-for(let j=0;j<n-i-1;j++){
-
-bars[j].classList.add("comparing");
-bars[j+1].classList.add("comparing");
-
-await sleep(200);
-
-if(data[j]>data[j+1]){
-
-[data[j],data[j+1]]=[data[j+1],data[j]];
-
-updateBar(bars[j],data[j]);
-updateBar(bars[j+1],data[j+1]);
-
-}
-
-bars[j].classList.remove("comparing");
-bars[j+1].classList.remove("comparing");
-
-}
-
-bars[n-i-1].classList.add("sorted");
-
-}
-
-bars[0].classList.add("sorted");
-
-}
-
-function updateBar(bar,value){
-
-bar.style.height=value*2+"px";
-bar.innerText=value;
-
-}
-
-resetData();
-
-</script>
-
+        resetData();
+    </script>
 </body>
 </html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>選擇排序法示範</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+        #array {
+            margin: 20px;
+            font-size: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>選擇排序法（Selection Sort）示範</h2>
+
+<div id="array"></div>
+<button onclick="startSort()">開始排序</button>
+
+<script>
+let arr = [64, 25, 12, 22, 11];
+
+function displayArray(highlightIndex = -1) {
+    let output = "";
+    for (let i = 0; i < arr.length; i++) {
+        if (i === highlightIndex) {
+            output += `<span style="color:red">${arr[i]}</span> `;
+        } else {
+            output += arr[i] + " ";
+        }
+    }
+    document.getElementById("array").innerHTML = output;
+}
+
+async function startSort() {
+    let n = arr.length;
+
+    for (let i = 0; i < n - 1; i++) {
+        let minIndex = i;
+
+        for (let j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIndex]) {
+                minIndex = j;
+            }
+        }
+
+        // 交換
+        let temp = arr[i];
+        arr[i] = arr[minIndex];
+        arr[minIndex] = temp;
+
+        displayArray(i);
+
+        // 延遲顯示（方便觀察）
+        await new Promise(resolve => setTimeout(resolve, 800));
+    }
+}
+
+displayArray();
+</script>
+
+</body>
+</html>

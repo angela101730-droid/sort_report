@@ -1,70 +1,212 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>選擇排序法示範</title>
+    <title>選擇排序視覺化</title>
     <style>
+        :root {
+            --primary-color: #3498db;
+        }
         body {
-            font-family: Arial;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 50px;
+            background: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            align-items: flex-end;
+            height: 250px;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .bar {
+            width: 35px;
+            background-color: var(--primary-color);
             text-align: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+            transition: 0.2s;
         }
-        #array {
-            margin: 20px;
-            font-size: 20px;
+
+        .bar.comparing {
+            background-color: #e74c3c !important;
         }
+
+        .bar.min {
+            background-color: #f1c40f !important;
+        }
+
+        .bar.sorted {
+            background-color: #2ecc71 !important;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+        }
+
         button {
             padding: 10px 20px;
-            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 20px;
+            background: #2c3e50;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-<h2>選擇排序法（Selection Sort）示範</h2>
+<h2>選擇排序法視覺化</h2>
 
-<div id="array"></div>
-<button onclick="startSort()">開始排序</button>
+<div class="container" id="bar-container"></div>
+
+<div class="controls">
+    <input type="color" value="#3498db" onchange="changeColor(this.value)">
+    <button onclick="startSort()">開始排序</button>
+    <button onclick="stepSort()">下一步</button>
+    <button onclick="resetData()">重置</button>
+</div>
 
 <script>
-let arr = [64, 25, 12, 22, 11];
+let data = [];
+let bars = [];
 
-function displayArray(highlightIndex = -1) {
-    let output = "";
-    for (let i = 0; i < arr.length; i++) {
-        if (i === highlightIndex) {
-            output += `<span style="color:red">${arr[i]}</span> `;
-        } else {
-            output += arr[i] + " ";
-        }
-    }
-    document.getElementById("array").innerHTML = output;
+let i = 0;
+let j = 1;
+let minIndex = 0;
+let isSorting = false;
+
+const container = document.getElementById('bar-container');
+
+function changeColor(color) {
+    document.documentElement.style.setProperty('--primary-color', color);
 }
+
+function resetData() {
+    data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
+    i = 0;
+    j = 1;
+    minIndex = 0;
+    renderBars();
+}
+
+function renderBars() {
+    container.innerHTML = '';
+    bars = [];
+    data.forEach(val => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = val * 2 + 'px';
+        bar.innerText = val;
+        container.appendChild(bar);
+        bars.push(bar);
+    });
+}
+
+function updateBar(index) {
+    bars[index].style.height = data[index] * 2 + 'px';
+    bars[index].innerText = data[index];
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function startSort() {
-    let n = arr.length;
+    if (isSorting) return;
+    isSorting = true;
 
-    for (let i = 0; i < n - 1; i++) {
-        let minIndex = i;
+    let n = data.length;
 
-        for (let j = i + 1; j < n; j++) {
-            if (arr[j] < arr[minIndex]) {
+    for (i = 0; i < n - 1; i++) {
+        minIndex = i;
+        bars[minIndex].classList.add('min');
+
+        for (j = i + 1; j < n; j++) {
+            bars[j].classList.add('comparing');
+            await sleep(150);
+
+            if (data[j] < data[minIndex]) {
+                bars[minIndex].classList.remove('min');
                 minIndex = j;
+                bars[minIndex].classList.add('min');
             }
+
+            bars[j].classList.remove('comparing');
         }
 
-        // 交換
-        let temp = arr[i];
-        arr[i] = arr[minIndex];
-        arr[minIndex] = temp;
+        [data[i], data[minIndex]] = [data[minIndex], data[i]];
+        updateBar(i);
+        updateBar(minIndex);
 
-        displayArray(i);
-
-        // 延遲顯示（方便觀察）
-        await new Promise(resolve => setTimeout(resolve, 800));
+        bars[minIndex].classList.remove('min');
+        bars[i].classList.add('sorted');
     }
+
+    bars[data.length - 1].classList.add('sorted');
+    isSorting = false;
 }
 
-displayArray();
+async function stepSort() {
+    if (isSorting) return;
+    isSorting = true;
+
+    let n = data.length;
+
+    if (i >= n - 1) {
+        bars[n - 1].classList.add('sorted');
+        isSorting = false;
+        return;
+    }
+
+    bars.forEach(b => b.classList.remove('comparing'));
+
+    if (j === i + 1) {
+        minIndex = i;
+        bars[minIndex].classList.add('min');
+    }
+
+    if (j < n) {
+        bars[j].classList.add('comparing');
+        await sleep(150);
+
+        if (data[j] < data[minIndex]) {
+            bars[minIndex].classList.remove('min');
+            minIndex = j;
+            bars[minIndex].classList.add('min');
+        }
+
+        bars[j].classList.remove('comparing');
+        j++;
+    } else {
+        [data[i], data[minIndex]] = [data[minIndex], data[i]];
+        updateBar(i);
+        updateBar(minIndex);
+
+        bars[minIndex].classList.remove('min');
+        bars[i].classList.add('sorted');
+
+        i++;
+        j = i + 1;
+    }
+
+    isSorting = false;
+}
+
+resetData();
 </script>
 
 </body>

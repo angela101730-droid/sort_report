@@ -26,6 +26,12 @@ h1{
     margin-bottom:30px;
 }
 
+.btn-group{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+}
+
 a{
     display:inline-block;
     padding:12px 25px;
@@ -34,6 +40,7 @@ a{
     text-decoration:none;
     border-radius:25px;
     font-size:18px;
+    transition:0.3s;
 }
 
 a:hover{
@@ -47,9 +54,10 @@ a:hover{
 <div class="card">
 <h1>排序演算法視覺化</h1>
 
-<a href="bubblesort.html">
-開始氣泡排序
-</a>
+<div class="btn-group">
+    <a href="bubblesort.html">氣泡排序</a>
+    <a href="selectionsort.html">選擇排序</a>
+</div>
 
 </div>
 

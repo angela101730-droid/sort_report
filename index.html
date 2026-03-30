@@ -43,7 +43,7 @@
         border-radius: 24px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         width: 100%;
-        max-width: 400px; /* 窄版設計，更像 App */
+        max-width: 400px;
         text-align: center;
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.3);
@@ -66,7 +66,7 @@
 
     .btn-group {
         display: flex;
-        flex-direction: column; /* 強制直式排列 */
+        flex-direction: column;
         gap: 16px;
     }
 
@@ -84,11 +84,13 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
-    /* 為每個按鈕定義顏色 */
+    /* 按鈕顏色定義 */
     .btn-bubble { background: #f43f5e; }    /* 玫瑰紅 */
     .btn-selection { background: #06b6d4; } /* 寶石藍 */
     .btn-insertion { background: #8b5cf6; } /* 紫羅蘭 */
     .btn-merge { background: #10b981; }     /* 翡翠綠 */
+    /* 新增：引力沉澱排序專屬顏色 */
+    .btn-gravity { background: linear-gradient(90deg, #0f172a 0%, #334155 100%); border: 1px solid rgba(255,255,255,0.1); } 
 
     a:hover {
         transform: scale(1.03);
@@ -100,12 +102,16 @@
         transform: scale(0.98);
     }
 
-    /* 按鈕前的裝飾符號 */
     a::before {
         content: "◈";
         margin-right: 10px;
         font-size: 1.2rem;
         opacity: 0.8;
+    }
+
+    /* 針對引力排序的特殊符號 */
+    .btn-gravity::before {
+        content: "✦"; 
     }
 
 </style>
@@ -124,6 +130,7 @@
         <a href="selection.html" class="btn-selection">選擇排序法</a>
         <a href="insertion.html" class="btn-insertion">插入排序法</a>
         <a href="merge.html" class="btn-merge">合併排序法</a>
+        <a href="gravity.html" class="btn-gravity">引力沉澱排序</a>
     </div>
 </div>
 

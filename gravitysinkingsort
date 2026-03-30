@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原創：引力沉澱排序視覺化</title>
+    <style>
+        :root {
+            --bg: #070b14;
+            --card-bg: rgba(16, 24, 39, 0.8);
+            --stone: #fbbf24; /* 沉澱的大數 (金) */
+            --bubble: #38bdf8; /* 浮起的小數 (藍) */
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h2 {
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--bubble), var(--stone));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .desc { font-size: 14px; color: #64748b; margin-bottom: 30px; }
+
+        .container {
+            display: flex;
+            align-items: flex-end;
+            height: 300px;
+            gap: 10px;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 30px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .bar {
+            width: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-size: 11px;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 5px;
+        }
+
+        /* 沉澱與浮起動畫 */
+        .bar.sinking { background: var(--stone); box-shadow: 0 0 20px var(--stone); transform: scale(1.1); }
+        .bar.floating { background: var(--bubble); box-shadow: 0 0 20px var(--bubble); transform: scale(0.9); }
+        .bar.sorted { background: var(--success); opacity: 0.8; box-shadow: none; }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        button:hover:not(:disabled) { background: white; color: black; }
+        #start-btn { background: linear-gradient(45deg, #0284c7, #7c3aed); }
+        .home-btn { border: 1px solid #334155; }
+
+        input[type="range"] { accent-color: var(--bubble); }
+    </style>
+</head>
+<body>
+
+    <h2>引力沉澱排序 (Gravity Sinking)</h2>
+    <div class="desc">模擬重者下沉、輕者浮起的雙向平衡邏輯</div>
+
+    <div class="container" id="bar-container"></div>
+
+    <div class="controls">
+        <button class="home-btn" onclick="location.href='index.html'">←</button>
+        <button onclick="resetData()">隨機重置</button>
+        <button id="start-btn" onclick="startGravitySort()">開始引力排序</button>
+        <div style="font-size: 13px; color: #94a3b8; margin-left: 10px;">速度</div>
+        <input type="range" id="speed" min="50" max="1000" value="800">
+    </div>
+
+<script>
+    let data = [];
+    let bars = [];
+    let isSorting = false;
+
+    function resetData() {
+        data = Array.from({length: 15}, () => Math.floor(Math.random() * 80) + 15);
+        renderBars();
+        isSorting = false;
+        document.getElementById('start-btn').disabled = false;
+    }
+
+    function renderBars() {
+        const container = document.getElementById('bar-container');
+        container.innerHTML = '';
+        bars = [];
+        data.forEach(v => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = (v * 3) + 'px';
+            bar.innerText = v;
+            container.appendChild(bar);
+            bars.push(bar);
+        });
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const getDelay = () => 1050 - document.getElementById('speed').value;
+
+    async function startGravitySort() {
+        if (isSorting) return;
+        isSorting = true;
+        document.getElementById('start-btn').disabled = true;
+
+        let left = 0;
+        let right = data.length - 1;
+        let swapped = true;
+
+        while (swapped) {
+            swapped = false;
+
+            // 第一階段：重者沉澱 (向右移動)
+            for (let i = left; i < right; i++) {
+                bars[i].classList.add('sinking');
+                bars[i+1].classList.add('sinking');
+                await sleep(getDelay());
+
+                if (data[i] > data[i+1]) {
+                    [data[i], data[i+1]] = [data[i+1], data[i]];
+                    updateBar(i);
+                    updateBar(i+1);
+                    swapped = true;
+                }
+                bars[i].classList.remove('sinking');
+                bars[i+1].classList.remove('sinking');
+            }
+            bars[right].classList.add('sorted');
+            right--;
+
+            if (!swapped) break;
+
+            // 第二階段：輕者浮起 (向左移動)
+            for (let i = right; i > left; i--) {
+                bars[i].classList.add('floating');
+                bars[i-1].classList.add('floating');
+                await sleep(getDelay());
+
+                if (data[i] < data[i-1]) {
+                    [data[i], data[i-1]] = [data[i-1], data[i]];
+                    updateBar(i);
+                    updateBar(i-1);
+                    swapped = true;
+                }
+                bars[i].classList.remove('floating');
+                bars[i-1].classList.remove('floating');
+            }
+            bars[left].classList.add('sorted');
+            left++;
+        }
+
+        bars.forEach(b => b.classList.add('sorted'));
+        isSorting = false;
+    }
+
+    function updateBar(idx) {
+        bars[idx].style.height = (data[idx] * 3) + 'px';
+        bars[idx].innerText = data[idx];
+    }
+
+    resetData();
+</script>
+</body>
+</html>

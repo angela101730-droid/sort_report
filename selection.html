@@ -1,274 +1,302 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>選擇排序視覺化（完整版）</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇排序視覺化 - 專業美化版</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* 琥珀色 */
+            --secondary: #d97706;
+            --compare: #ef4444; /* 紅色：比對中 */
+            --min-target: #3b82f6; /* 藍色：目前最小值 */
+            --success: #10b981; /* 綠色：已排序 */
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
 
-<style>
-:root {
-    --primary-color: #3498db;
-}
+        body {
+            font-family: 'Inter', 'system-ui', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-body {
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 40px;
-    background: #f0f2f5;
-}
+        h2 {
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+            background: linear-gradient(to right, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-h2 {
-    margin-bottom: 10px;
-}
+        /* 數據統計面板 */
+        .info {
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .info span {
+            color: #f1f5f9;
+            font-weight: bold;
+            margin: 0 5px;
+        }
 
-.info {
-    margin-bottom: 15px;
-    color: #555;
-}
+        .container {
+            display: flex;
+            align-items: flex-end;
+            height: 300px;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
 
-.container {
-    display: flex;
-    align-items: flex-end;
-    height: 260px;
-    gap: 8px;
-    margin-bottom: 25px;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+        .bar {
+            width: 35px;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px 6px 2px 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 5px;
+        }
 
-.bar {
-    width: 35px;
-    background-color: var(--primary-color);
-    text-align: center;
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 4px 4px 0 0;
-    transition: 0.2s;
-}
+        /* 狀態顏色定義 */
+        .bar.comparing { background: var(--compare) !important; box-shadow: 0 0 15px var(--compare); transform: scaleX(1.1); }
+        .bar.min { background: var(--min-target) !important; box-shadow: 0 0 15px var(--min-target); transform: translateY(-5px); }
+        .bar.sorted { background: var(--success) !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
 
-.bar.comparing { background:#e74c3c !important; }
-.bar.min { background:#f1c40f !important; }
-.bar.sorted { background:#2ecc71 !important; }
+        /* 控制面板 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    background: white;
-    padding: 15px 20px;
-    border-radius: 50px;
-}
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
 
-button {
-    padding: 10px 18px;
-    border: none;
-    border-radius: 20px;
-    background:#2c3e50;
-    color:white;
-    cursor:pointer;
-}
+        input[type="range"] { cursor: pointer; accent-color: var(--primary); width: 100px; }
 
-button:hover { opacity:0.9; }
+        button {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
 
-.home-btn {
-    background:#e67e22;
-}
+        button:hover:not(:disabled) {
+            background: white;
+            color: var(--bg);
+            transform: translateY(-2px);
+        }
 
-.home-btn:hover {
-    background:#d35400;
-}
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-input[type="range"] {
-    width: 120px;
-}
-</style>
+        .home-btn { background: #ea580c; border: none; }
+        #start-btn { background: var(--primary); border: none; }
+    </style>
 </head>
 
 <body>
 
-<h2>選擇排序法視覺化</h2>
+    <h2>選擇排序法視覺化</h2>
 
-<div class="info">
-    比較次數：<span id="compare-count">0</span>　
-    交換次數：<span id="swap-count">0</span>
-</div>
+    <div class="info">
+        比較次數：<span id="compare-count">0</span>　|　
+        交換次數：<span id="swap-count">0</span>
+    </div>
 
-<div class="container" id="bar-container"></div>
+    <div class="container" id="bar-container"></div>
 
-<div class="controls">
-    <button class="home-btn" onclick="goHome()">回首頁</button>
+    <div class="controls">
+        <button class="home-btn" onclick="goHome()">← 返回首頁</button>
 
-    <input type="color" value="#3498db" onchange="changeColor(this.value)">
+        <button id="reset-btn" onclick="resetData()">隨機重置</button>
+        <button id="step-btn" onclick="stepSort()">下一步</button>
+        <button id="start-btn" onclick="startSort()">開始排序</button>
 
-    <button onclick="startSort()">開始排序</button>
-    <button onclick="stepSort()">下一步</button>
-    <button onclick="resetData()">重置</button>
-
-    <label>速度</label>
-    <input type="range" min="50" max="500" value="150" id="speed">
-</div>
+        <div class="speed-control">
+            <span>慢</span>
+            <input type="range" min="50" max="1000" value="850" id="speed">
+            <span>快</span>
+        </div>
+    </div>
 
 <script>
-let data = [];
-let bars = [];
+    let data = [];
+    let bars = [];
+    let i = 0, j = 1, minIndex = 0;
+    let isSorting = false;
+    let compareCount = 0, swapCount = 0;
 
-let i = 0;
-let j = 1;
-let minIndex = 0;
-let isSorting = false;
+    const container = document.getElementById('bar-container');
+    const speedInput = document.getElementById('speed');
 
-let compareCount = 0;
-let swapCount = 0;
+    function goHome(){ window.location.href = "index.html"; }
 
-const container = document.getElementById('bar-container');
+    function resetData(){
+        data = Array.from({length:12}, () => Math.floor(Math.random()*85)+10);
+        i = 0; j = 1; minIndex = 0;
+        compareCount = 0; swapCount = 0;
+        isSorting = false;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('step-btn').disabled = false;
+        updateInfo();
+        renderBars();
+    }
 
-function goHome(){
-    window.location.href = "index.html";
-}
+    function updateInfo(){
+        document.getElementById('compare-count').innerText = compareCount;
+        document.getElementById('swap-count').innerText = swapCount;
+    }
 
-function changeColor(color){
-    document.documentElement.style.setProperty('--primary-color', color);
-}
+    function renderBars(){
+        container.innerHTML = '';
+        bars = [];
+        data.forEach(val => {
+            const bar = document.createElement('div');
+            bar.className='bar';
+            bar.style.height = val*3 + 'px';
+            bar.innerText = val;
+            container.appendChild(bar);
+            bars.push(bar);
+        });
+    }
 
-function resetData(){
-    data = Array.from({length:10},()=>Math.floor(Math.random()*90)+10);
-    i = 0; j = 1; minIndex = 0;
-    compareCount = 0;
-    swapCount = 0;
-    updateInfo();
-    renderBars();
-}
+    function updateBarDisplay(idx){
+        bars[idx].style.height = data[idx]*3 + 'px';
+        bars[idx].innerText = data[idx];
+    }
 
-function updateInfo(){
-    document.getElementById('compare-count').innerText = compareCount;
-    document.getElementById('swap-count').innerText = swapCount;
-}
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function renderBars(){
-    container.innerHTML = '';
-    bars = [];
-    data.forEach(val=>{
-        const bar = document.createElement('div');
-        bar.className='bar';
-        bar.style.height = val*2+'px';
-        bar.innerText = val;
-        container.appendChild(bar);
-        bars.push(bar);
-    });
-}
+    function getDelay() { return 1050 - speedInput.value; }
 
-function updateBar(i){
-    bars[i].style.height = data[i]*2+'px';
-    bars[i].innerText = data[i];
-}
+    async function startSort(){
+        if(isSorting) return;
+        isSorting = true;
+        document.getElementById('start-btn').disabled = true;
+        document.getElementById('step-btn').disabled = true;
 
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
+        let n = data.length;
+        for(i=0; i<n-1; i++){
+            minIndex = i;
+            bars[minIndex].classList.add('min');
 
-function getSpeed(){
-    return document.getElementById('speed').value;
-}
+            for(j=i+1; j<n; j++){
+                bars[j].classList.add('comparing');
+                compareCount++;
+                updateInfo();
+                await sleep(getDelay());
 
-async function startSort(){
-    if(isSorting) return;
-    isSorting = true;
+                if(data[j] < data[minIndex]){
+                    bars[minIndex].classList.remove('min');
+                    minIndex = j;
+                    bars[minIndex].classList.add('min');
+                }
+                bars[j].classList.remove('comparing');
+            }
 
-    let n = data.length;
+            if(minIndex !== i){
+                [data[i], data[minIndex]] = [data[minIndex], data[i]];
+                swapCount++;
+                updateInfo();
+                updateBarDisplay(i);
+                updateBarDisplay(minIndex);
+            }
+            bars[minIndex].classList.remove('min');
+            bars[i].classList.add('sorted');
+        }
+        bars[n-1].classList.add('sorted');
+        isSorting = false;
+    }
 
-    for(i=0;i<n-1;i++){
-        minIndex = i;
-        bars[minIndex].classList.add('min');
+    async function stepSort(){
+        if(isSorting) return;
+        isSorting = true;
+        let n = data.length;
 
-        for(j=i+1;j<n;j++){
+        if(i >= n-1){
+            bars[n-1].classList.add('sorted');
+            isSorting = false;
+            return;
+        }
+
+        if(j === i+1){
+            minIndex = i;
+            bars[minIndex].classList.add('min');
+        }
+
+        if(j < n){
             bars[j].classList.add('comparing');
-
             compareCount++;
             updateInfo();
-
-            await sleep(getSpeed());
+            await sleep(100); // 單步給予固定小延遲
 
             if(data[j] < data[minIndex]){
                 bars[minIndex].classList.remove('min');
                 minIndex = j;
                 bars[minIndex].classList.add('min');
             }
-
-            bars[j].classList.remove('comparing');
-        }
-
-        if(minIndex !== i){
-            [data[i], data[minIndex]] = [data[minIndex], data[i]];
-            swapCount++;
-            updateInfo();
-            updateBar(i);
-            updateBar(minIndex);
-        }
-
-        bars[minIndex].classList.remove('min');
-        bars[i].classList.add('sorted');
-    }
-
-    bars[data.length-1].classList.add('sorted');
-    isSorting = false;
-}
-
-async function stepSort(){
-    if(isSorting) return;
-    isSorting = true;
-
-    let n = data.length;
-
-    if(i >= n-1){
-        bars[n-1].classList.add('sorted');
-        isSorting=false;
-        return;
-    }
-
-    if(j === i+1){
-        minIndex = i;
-        bars[minIndex].classList.add('min');
-    }
-
-    if(j < n){
-        bars[j].classList.add('comparing');
-
-        compareCount++;
-        updateInfo();
-
-        await sleep(getSpeed());
-
-        if(data[j] < data[minIndex]){
+            setTimeout(() => {
+                bars[j-1 >= 0 ? j : j].classList.remove('comparing');
+                j++;
+                isSorting = false;
+            }, 100);
+        } else {
+            if(minIndex !== i){
+                [data[i], data[minIndex]] = [data[minIndex], data[i]];
+                swapCount++;
+                updateInfo();
+                updateBarDisplay(i);
+                updateBarDisplay(minIndex);
+            }
             bars[minIndex].classList.remove('min');
-            minIndex = j;
-            bars[minIndex].classList.add('min');
+            bars[i].classList.add('sorted');
+            i++;
+            j = i+1;
+            isSorting = false;
         }
-
-        bars[j].classList.remove('comparing');
-        j++;
-    }else{
-        if(minIndex !== i){
-            [data[i], data[minIndex]] = [data[minIndex], data[i]];
-            swapCount++;
-            updateInfo();
-            updateBar(i);
-            updateBar(minIndex);
-        }
-
-        bars[minIndex].classList.remove('min');
-        bars[i].classList.add('sorted');
-
-        i++;
-        j = i+1;
     }
 
-    isSorting=false;
-}
-
-resetData();
+    resetData();
 </script>
-
 </body>
 </html>

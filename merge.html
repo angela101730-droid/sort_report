@@ -1,177 +1,273 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>合併排序視覺化</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合併排序視覺化 - 專業美化版</title>
+    <style>
+        :root {
+            --primary: #10b981; /* 翠綠色 */
+            --secondary: #3b82f6; /* 亮藍色 */
+            --compare: #facc15; /* 黃色 */
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
 
-<style>
-:root { --primary-color: #3498db; }
+        body {
+            font-family: 'Inter', 'system-ui', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-body {
-    font-family: 'Segoe UI';
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 50px;
-    background: #f0f2f5;
-}
+        h2 {
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, #34d399, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.container {
-    display: flex;
-    align-items: flex-end;
-    height: 250px;
-    gap: 8px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background: white;
-}
+        .container {
+            display: flex;
+            align-items: flex-end;
+            height: 300px;
+            gap: 12px;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
 
-.bar {
-    width: 35px;
-    background: var(--primary-color);
-    color: white;
-    text-align: center;
-}
+        .bar {
+            width: 35px;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px 6px 2px 2px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 5px;
+        }
 
-.bar.comparing { background: #e74c3c; }
-.bar.sorted { background: #2ecc71; }
+        .bar.active {
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px var(--primary);
+        }
 
-.controls {
-    display: flex;
-    gap: 10px;
-}
+        .bar.sorted {
+            background: linear-gradient(to top, #059669, #10b981) !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
 
-button {
-    padding: 10px;
-    background: #2c3e50;
-    color: white;
-    border: none;
-}
-</style>
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 20px 40px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        button {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: white;
+            color: var(--bg);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        #start-btn {
+            background: var(--primary);
+            border: none;
+        }
+
+        .home-btn {
+            background: transparent;
+            border-color: #475569;
+        }
+    </style>
 </head>
-
 <body>
 
-<h2>合併排序法視覺化</h2>
+    <h2>合併排序法視覺化</h2>
 
-<div class="container" id="bar-container"></div>
+    <div class="container" id="bar-container"></div>
 
-<div class="controls">
-    <button onclick="startSort()">開始排序</button>
-    <button onclick="stepSort()">下一步</button>
-    <button onclick="resetData()">重置</button>
-    <input type="color" onchange="changeColor(this.value)">
-</div>
+    <div class="controls">
+        <button class="home-btn" onclick="goHome()">← 返回首頁</button>
+        
+        <div class="speed-control">
+            <span>慢</span>
+            <input type="range" id="speed-slider" min="50" max="1000" value="800" step="50">
+            <span>快</span>
+        </div>
 
-<script>
-let data = [];
-let bars = [];
-let steps = [];
-let stepIndex = 0;
-let isSorting = false;
+        <button id="reset-btn" onclick="resetData()">隨機重置</button>
+        <button id="step-btn" onclick="stepSort()">下一步</button>
+        <button id="start-btn" onclick="startSort()">開始排序</button>
+    </div>
 
-const container = document.getElementById('bar-container');
+    <script>
+        let data = [];
+        let bars = [];
+        let steps = [];
+        let stepIndex = 0;
+        let isSorting = false;
 
-function changeColor(color) {
-    document.documentElement.style.setProperty('--primary-color', color);
-}
+        const container = document.getElementById('bar-container');
+        const speedSlider = document.getElementById('speed-slider');
+        const startBtn = document.getElementById('start-btn');
+        const stepBtn = document.getElementById('step-btn');
 
-function resetData() {
-    data = Array.from({length:10},()=>Math.floor(Math.random()*90)+10);
-    renderBars();
-    steps = [];
-    stepIndex = 0;
-    generateSteps([...data]);
-}
+        function goHome() {
+            window.location.href = 'index.html';
+        }
 
-function renderBars() {
-    container.innerHTML = '';
-    bars = [];
-    data.forEach(v=>{
-        const bar=document.createElement('div');
-        bar.className='bar';
-        bar.style.height=v*2+'px';
-        bar.innerText=v;
-        container.appendChild(bar);
-        bars.push(bar);
-    });
-}
+        function getDelay() {
+            return 1050 - speedSlider.value;
+        }
 
-function updateBars(arr){
-    arr.forEach((v,i)=>{
-        bars[i].style.height=v*2+'px';
-        bars[i].innerText=v;
-    });
-}
+        function resetData() {
+            data = Array.from({length:12}, () => Math.floor(Math.random()*85)+10);
+            steps = [];
+            stepIndex = 0;
+            isSorting = false;
+            startBtn.disabled = false;
+            stepBtn.disabled = false;
+            renderBars();
+            generateSteps([...data]);
+        }
 
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+        function renderBars() {
+            container.innerHTML = '';
+            bars = [];
+            data.forEach(v => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = v * 3 + 'px';
+                bar.innerText = v;
+                container.appendChild(bar);
+                bars.push(bar);
+            });
+        }
 
-/* ===== Merge Sort 產生步驟 ===== */
-function generateSteps(arr){
-    function mergeSort(a,l,r){
-        if(l>=r) return;
-        let m=Math.floor((l+r)/2);
-        mergeSort(a,l,m);
-        mergeSort(a,m+1,r);
-        merge(a,l,m,r);
-    }
+        function updateBars(state) {
+            state.forEach((v, i) => {
+                bars[i].style.height = v * 3 + 'px';
+                bars[i].innerText = v;
+                // 加入一點 active 效果，提示數值正在變動
+                bars[i].classList.add('active');
+                setTimeout(() => bars[i].classList.remove('active'), 150);
+            });
+        }
 
-    function merge(a,l,m,r){
-        let left=a.slice(l,m+1);
-        let right=a.slice(m+1,r+1);
-        let i=0,j=0,k=l;
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-        while(i<left.length && j<right.length){
-            if(left[i]<=right[j]){
-                a[k++]=left[i++];
-            }else{
-                a[k++]=right[j++];
+        /* ===== Merge Sort 邏輯（產生步驟） ===== */
+        function generateSteps(arr) {
+            function mergeSort(a, l, r) {
+                if (l >= r) return;
+                let m = Math.floor((l + r) / 2);
+                mergeSort(a, l, m);
+                mergeSort(a, m + 1, r);
+                merge(a, l, m, r);
             }
-            steps.push([...a]); // 記錄每一步
+
+            function merge(a, l, m, r) {
+                let left = a.slice(l, m + 1);
+                let right = a.slice(m + 1, r + 1);
+                let i = 0, j = 0, k = l;
+
+                while (i < left.length && j < right.length) {
+                    if (left[i] <= right[j]) a[k++] = left[i++];
+                    else a[k++] = right[j++];
+                    steps.push([...a]);
+                }
+                while (i < left.length) { a[k++] = left[i++]; steps.push([...a]); }
+                while (j < right.length) { a[k++] = right[j++]; steps.push([...a]); }
+            }
+            mergeSort(arr, 0, arr.length - 1);
         }
 
-        while(i<left.length){
-            a[k++]=left[i++];
-            steps.push([...a]);
+        /* ===== 自動播放 ===== */
+        async function startSort() {
+            if (isSorting || stepIndex >= steps.length) return;
+            isSorting = true;
+            startBtn.disabled = true;
+            stepBtn.disabled = true;
+
+            for (let i = stepIndex; i < steps.length; i++) {
+                updateBars(steps[i]);
+                stepIndex = i + 1;
+                await sleep(getDelay());
+            }
+
+            finishAnimation();
         }
 
-        while(j<right.length){
-            a[k++]=right[j++];
-            steps.push([...a]);
+        /* ===== 單步執行 ===== */
+        function stepSort() {
+            if (isSorting || stepIndex >= steps.length) return;
+            
+            updateBars(steps[stepIndex]);
+            stepIndex++;
+
+            if (stepIndex === steps.length) finishAnimation();
         }
-    }
 
-    mergeSort(arr,0,arr.length-1);
-}
+        function finishAnimation() {
+            bars.forEach(b => b.classList.add('sorted'));
+            startBtn.disabled = true;
+            stepBtn.disabled = true;
+            isSorting = false;
+        }
 
-/* ===== 自動播放 ===== */
-async function startSort(){
-    if(isSorting) return;
-    isSorting=true;
-
-    for(let i=0;i<steps.length;i++){
-        updateBars(steps[i]);
-        await sleep(200);
-    }
-
-    bars.forEach(b=>b.classList.add('sorted'));
-    isSorting=false;
-}
-
-/* ===== 單步 ===== */
-function stepSort(){
-    if(stepIndex>=steps.length) return;
-
-    updateBars(steps[stepIndex]);
-    stepIndex++;
-
-    if(stepIndex===steps.length){
-        bars.forEach(b=>b.classList.add('sorted'));
-    }
-}
-
-resetData();
-</script>
-
+        resetData();
+    </script>
 </body>
 </html>

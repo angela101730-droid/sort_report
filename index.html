@@ -6,119 +6,115 @@
 <title>排序視覺化首頁</title>
 
 <style>
-    /* 定義全域變數，方便之後改顏色 */
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --card-bg: rgba(255, 255, 255, 0.9);
-        --text-color: #2d3436;
+        --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --text-color: #1e293b;
     }
 
     body {
-        font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         background: var(--primary-gradient);
-        background-attachment: fixed;
+        margin: 0;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        margin: 0;
         overflow: hidden;
     }
 
-    /* 增加一點裝飾用的背景圓圈，增加空間感 */
-    body::before {
-        content: "";
+    /* 裝飾背景球 */
+    .bg-circle {
         position: absolute;
-        width: 300px;
-        height: 300px;
-        background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
-        top: -100px;
-        right: -100px;
+        background: rgba(255, 255, 255, 0.05);
         z-index: -1;
+        animation: float 10s infinite alternate ease-in-out;
+    }
+
+    @keyframes float {
+        from { transform: translate(0, 0); }
+        to { transform: translate(20px, 40px); }
     }
 
     .card {
         background: var(--card-bg);
-        padding: 50px 40px;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        backdrop-filter: blur(10px); /* 毛玻璃效果 */
+        padding: 50px 30px;
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 400px; /* 窄版設計，更像 App */
         text-align: center;
-        max-width: 600px;
-        width: 90%;
-        transform: translateY(0);
-        transition: transform 0.3s ease;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        animation: slideUp 0.6s ease-out;
     }
 
-    .card:hover {
-        transform: translateY(-5px);
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
         color: var(--text-color);
-        margin-bottom: 40px;
-        font-size: 2.2rem;
-        letter-spacing: 2px;
-        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 35px;
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
     }
 
     .btn-group {
         display: flex;
-        flex-direction: column; /* 手機優先：垂直排列 */
-        gap: 15px;
-        justify-content: center;
-    }
-
-    /* 電腦版改回水平排列 */
-    @media (min-width: 600px) {
-        .btn-group {
-            flex-direction: row;
-        }
+        flex-direction: column; /* 強制直式排列 */
+        gap: 16px;
     }
 
     a {
-        display: inline-block;
-        padding: 15px 28px;
-        color: white;
         text-decoration: none;
-        border-radius: 12px;
-        font-size: 16px;
+        color: white;
+        padding: 18px;
+        border-radius: 16px;
+        font-size: 1.1rem;
         font-weight: 600;
-        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        position: relative;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
-    /* 不同演算法給予不同風格 */
-    .btn-bubble { background: #ff7675; }
-    .btn-selection { background: #00cec9; }
-    .btn-insertion { background: #6c5ce7; }
+    /* 為每個按鈕定義顏色 */
+    .btn-bubble { background: #f43f5e; }    /* 玫瑰紅 */
+    .btn-selection { background: #06b6d4; } /* 寶石藍 */
+    .btn-insertion { background: #8b5cf6; } /* 紫羅蘭 */
+    .btn-merge { background: #10b981; }     /* 翡翠綠 */
 
     a:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        transform: scale(1.03);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
         filter: brightness(1.1);
     }
 
     a:active {
-        transform: translateY(0);
+        transform: scale(0.98);
     }
 
-    /* 簡單的小動畫 */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* 按鈕前的裝飾符號 */
+    a::before {
+        content: "◈";
+        margin-right: 10px;
+        font-size: 1.2rem;
+        opacity: 0.8;
     }
 
-    .card {
-        animation: fadeIn 0.8s ease-out;
-    }
 </style>
 </head>
 
 <body>
+
+<div class="bg-circle" style="width: 300px; height: 300px; top: -100px; left: -100px;"></div>
+<div class="bg-circle" style="width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: -2s;"></div>
 
 <div class="card">
     <h1>排序演算法視覺化</h1>

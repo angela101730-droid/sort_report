@@ -2,203 +2,305 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>插入排序視覺化</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插入排序視覺化 - 專業美化版</title>
     <style>
         :root {
-            --primary-color: #3498db;
+            --primary: #8b5cf6;
+            --secondary: #ec4899;
+            --compare: #fbbf24;
+            --success: #10b981;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
         }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 50px;
-            background: #f0f2f5;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
         }
+
+        h2 {
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 長條圖容器 */
         .container {
             display: flex;
             align-items: flex-end;
-            height: 250px;
-            gap: 8px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: 300px;
+            gap: 12px;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
+
         .bar {
             width: 35px;
-            background-color: var(--primary-color);
+            background: linear-gradient(to top, var(--primary), var(--secondary));
             text-align: center;
             color: white;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            border-radius: 4px 4px 0 0;
-            transition: height 0.2s, background-color 0.2s;
+            border-radius: 6px 6px 2px 2px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 5px;
+            position: relative;
         }
-        .bar.comparing { background-color: #e74c3c !important; }
-        .bar.sorted { background-color: #2ecc71 !important; }
 
+        /* 正在處理的 Key 元素 */
+        .bar.active {
+            filter: brightness(1.3);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .bar.comparing {
+            background: var(--compare) !important;
+            box-shadow: 0 0 20px var(--compare);
+            z-index: 10;
+        }
+
+        .bar.sorted {
+            background: var(--success) !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* 控制面板 */
         .controls {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 15px;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 50px;
+            justify-content: center;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 20px 40px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 20px;
-        }
-        button:disabled { background: #bdc3c7; }
 
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+            accent-color: var(--secondary);
+        }
+
+        button {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: white;
+            color: var(--bg);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        #start-btn {
+            background: var(--primary);
+            border: none;
+        }
+
+        .home-btn {
+            background: transparent;
+            border-color: #475569;
+        }
     </style>
 </head>
 <body>
 
-<h2>插入排序法視覺化</h2>
+    <h2>插入排序法視覺化</h2>
 
-<div class="container" id="bar-container"></div>
+    <div class="container" id="bar-container"></div>
 
-<div class="controls">
-    <button onclick="goHome()">回首頁</button>
-    <input type="color" id="color-picker" value="#3498db" onchange="changeColor(this.value)">
-    <button id="start-btn" onclick="startSort()">開始排序</button>
-    <button id="step-btn" onclick="stepSort()">下一步</button>
-    <button onclick="resetData()">隨機重置</button>
-</div>
+    <div class="controls">
+        <button class="home-btn" onclick="goHome()">← 返回首頁</button>
+        
+        <div class="speed-control">
+            <span>慢</span>
+            <input type="range" id="speed-slider" min="50" max="1000" value="700" step="50">
+            <span>快</span>
+        </div>
 
-<script>
-let data = [];
-let bars = [];
+        <button id="reset-btn" onclick="resetData()">隨機重置</button>
+        <button id="step-btn" onclick="stepSort()">下一步</button>
+        <button id="start-btn" onclick="startSort()">開始排序</button>
+    </div>
 
-let currentI = 1;
-let currentJ = 0;
-let key = null;
-let isSorting = false;
+    <script>
+        let data = [];
+        let bars = [];
+        let currentI = 1;
+        let currentJ = 0;
+        let tempKey = null;
+        let isSorting = false;
 
-const container = document.getElementById('bar-container');
-const startBtn = document.getElementById('start-btn');
-const stepBtn = document.getElementById('step-btn');
-const colorPicker = document.getElementById('color-picker');
+        const container = document.getElementById('bar-container');
+        const startBtn = document.getElementById('start-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedSlider = document.getElementById('speed-slider');
 
-function goHome() {
-    window.location.href = 'index.html';
-}
-
-function changeColor(color) {
-    document.documentElement.style.setProperty('--primary-color', color);
-}
-
-function resetData() {
-    data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
-    renderBars();
-    currentI = 1;
-    key = null;
-    isSorting = false;
-}
-
-function renderBars() {
-    container.innerHTML = '';
-    bars = [];
-    data.forEach(value => {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.height = value * 2 + 'px';
-        bar.innerText = value;
-        container.appendChild(bar);
-        bars.push(bar);
-    });
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function startSort() {
-    if (isSorting) return;
-    isSorting = true;
-
-    const n = data.length;
-
-    for (let i = 1; i < n; i++) {
-        let key = data[i];
-        let j = i - 1;
-
-        bars[i].classList.add('comparing');
-
-        await sleep(200);
-
-        while (j >= 0 && data[j] > key) {
-            bars[j].classList.add('comparing');
-
-            await sleep(150);
-
-            data[j + 1] = data[j];
-            updateBar(bars[j + 1], data[j + 1]);
-
-            bars[j].classList.remove('comparing');
-            j--;
+        function goHome() {
+            window.location.href = 'index.html';
         }
 
-        data[j + 1] = key;
-        updateBar(bars[j + 1], key);
+        function getDelay() {
+            return 1050 - speedSlider.value;
+        }
 
-        bars[i].classList.remove('comparing');
-    }
+        function resetData() {
+            data = Array.from({ length: 12 }, () => Math.floor(Math.random() * 80) + 10);
+            currentI = 1;
+            tempKey = null;
+            isSorting = false;
+            startBtn.disabled = false;
+            stepBtn.disabled = false;
+            renderBars();
+        }
 
-    bars.forEach(b => b.classList.add('sorted'));
-    isSorting = false;
-}
+        function renderBars() {
+            container.innerHTML = '';
+            bars = [];
+            data.forEach(value => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${value * 3}px`;
+                bar.innerText = value;
+                container.appendChild(bar);
+                bars.push(bar);
+            });
+        }
 
-async function stepSort() {
-    if (isSorting) return;
-    isSorting = true;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    const n = data.length;
+        async function startSort() {
+            if (isSorting) return;
+            isSorting = true;
+            startBtn.disabled = true;
+            stepBtn.disabled = true;
 
-    if (currentI >= n) {
-        bars.forEach(b => b.classList.add('sorted'));
-        isSorting = false;
-        return;
-    }
+            const n = data.length;
 
-    if (key === null) {
-        key = data[currentI];
-        currentJ = currentI - 1;
-    }
+            for (let i = currentI; i < n; i++) {
+                let key = data[i];
+                let j = i - 1;
 
-    if (currentJ >= 0 && data[currentJ] > key) {
-        bars[currentJ].classList.add('comparing');
+                bars[i].classList.add('active');
+                await sleep(getDelay());
 
-        await sleep(150);
+                while (j >= 0 && data[j] > key) {
+                    bars[j].classList.add('comparing');
+                    await sleep(getDelay() * 0.5);
 
-        data[currentJ + 1] = data[currentJ];
-        updateBar(bars[currentJ + 1], data[currentJ + 1]);
+                    data[j + 1] = data[j];
+                    updateBar(bars[j + 1], data[j + 1]);
+                    
+                    bars[j].classList.remove('comparing');
+                    j--;
+                }
 
-        bars[currentJ].classList.remove('comparing');
-        currentJ--;
-    } else {
-        data[currentJ + 1] = key;
-        updateBar(bars[currentJ + 1], key);
+                data[j + 1] = key;
+                updateBar(bars[j + 1], key);
+                bars[i].classList.remove('active');
+                
+                // 標示已完成部分排序的部分（可選）
+                for(let k=0; k<=i; k++) bars[k].classList.add('sorted');
+                
+                currentI = i + 1;
+            }
 
-        key = null;
-        currentI++;
-    }
+            bars.forEach(b => b.classList.add('sorted'));
+            isSorting = false;
+        }
 
-    isSorting = false;
-}
+        // 單步執行邏輯
+        async function stepSort() {
+            if (isSorting) return;
+            isSorting = true;
+            
+            const n = data.length;
+            if (currentI >= n) {
+                bars.forEach(b => b.classList.add('sorted'));
+                isSorting = false;
+                stepBtn.disabled = true;
+                return;
+            }
 
-function updateBar(bar, value) {
-    bar.style.height = value * 2 + 'px';
-    bar.innerText = value;
-}
+            if (tempKey === null) {
+                tempKey = data[currentI];
+                currentJ = currentI - 1;
+                bars[currentI].classList.add('active');
+                await sleep(100);
+            }
 
-resetData();
-</script>
+            if (currentJ >= 0 && data[currentJ] > tempKey) {
+                bars[currentJ].classList.add('comparing');
+                await sleep(200);
+                
+                data[currentJ + 1] = data[currentJ];
+                updateBar(bars[currentJ + 1], data[currentJ + 1]);
+                
+                bars[currentJ].classList.remove('comparing');
+                currentJ--;
+            } else {
+                data[currentJ + 1] = tempKey;
+                updateBar(bars[currentJ + 1], tempKey);
+                
+                bars[currentI].classList.remove('active');
+                for(let k=0; k<=currentI; k++) bars[k].classList.add('sorted');
+                
+                tempKey = null;
+                currentI++;
+            }
+
+            isSorting = false;
+        }
+
+        function updateBar(bar, value) {
+            bar.style.height = value * 3 + 'px';
+            bar.innerText = value;
+        }
+
+        resetData();
+    </script>
 
 </body>
 </html>

@@ -1,63 +1,148 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <title>插入排序法示範</title>
-    <style>
-        body {
-            font-family: Arial;
-            padding: 20px;
-        }
-        input, button {
-            padding: 8px;
-            margin: 5px;
-        }
-        #output {
-            margin-top: 20px;
-            white-space: pre-line;
-            background: #f4f4f4;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-
-<h2>插入排序法 (Insertion Sort)</h2>
-
-<label>輸入數字（用逗號分隔）：</label><br>
-<input type="text" id="numbers" value="5,3,8,4,2">
-<button onclick="insertionSort()">排序</button>
-
-<div id="output"></div>
-
 <script>
-function insertionSort() {
-    let input = document.getElementById("numbers").value;
-    let arr = input.split(",").map(Number);
-    let output = document.getElementById("output");
+    let data = [];
+    const container = document.getElementById('bar-container');
+    const startBtn = document.getElementById('start-btn');
+    const stepBtn = document.getElementById('step-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const colorPicker = document.getElementById('color-picker');
 
-    let steps = "排序過程：\n";
+    // 排序狀態
+    let isSorting = false;
+    let currentI = 1;
+    let currentJ = 0;
+    let key = null;
+    let bars = [];
 
-    for (let i = 1; i < arr.length; i++) {
-        let key = arr[i];
-        let j = i - 1;
-
-        steps += `\n第 ${i} 回合，key = ${key}\n`;
-
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-            steps += arr.join(", ") + "\n";
-        }
-
-        arr[j + 1] = key;
-        steps += "插入後: " + arr.join(", ") + "\n";
+    function goHome() {
+        window.location.href = 'index.html';
     }
 
-    steps += "\n排序結果: " + arr.join(", ");
-    output.textContent = steps;
-}
-</script>
+    function changeColor(color) {
+        document.documentElement.style.setProperty('--primary-color', color);
+    }
 
-</body>
-</html>
+    function resetData() {
+        data = Array.from({ length: 10 }, () => Math.floor(Math.random() * 90) + 10);
+        renderBars();
+        startBtn.disabled = false;
+        stepBtn.disabled = false;
+        resetBtn.disabled = false;
+        colorPicker.disabled = false;
+        isSorting = false;
+        currentI = 1;
+        currentJ = 0;
+        key = null;
+        bars.forEach(b => b.classList.remove('sorted', 'comparing'));
+    }
+
+    function renderBars() {
+        container.innerHTML = '';
+        bars = [];
+        data.forEach(value => {
+            const bar = document.createElement('div');
+            bar.classList.add('bar');
+            bar.style.height = `${value * 2}px`;
+            bar.innerText = value;
+            container.appendChild(bar);
+            bars.push(bar);
+        });
+    }
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    async function startSort() {
+        if (isSorting) return;
+        isSorting = true;
+
+        startBtn.disabled = true;
+        stepBtn.disabled = true;
+        resetBtn.disabled = true;
+        colorPicker.disabled = true;
+
+        const n = data.length;
+
+        for (let i = 1; i < n; i++) {
+            key = data[i];
+            let j = i - 1;
+
+            bars[i].classList.add('comparing');
+
+            await sleep(200);
+
+            while (j >= 0 && data[j] > key) {
+                bars[j].classList.add('comparing');
+
+                await sleep(150);
+
+                data[j + 1] = data[j];
+                updateBar(bars[j + 1], data[j + 1]);
+
+                bars[j].classList.remove('comparing');
+                j--;
+            }
+
+            data[j + 1] = key;
+            updateBar(bars[j + 1], key);
+
+            bars[i].classList.remove('comparing');
+        }
+
+        bars.forEach(b => b.classList.add('sorted'));
+
+        isSorting = false;
+        resetBtn.disabled = false;
+        colorPicker.disabled = false;
+    }
+
+    async function stepSort() {
+        if (isSorting) return;
+        isSorting = true;
+
+        startBtn.disabled = true;
+        resetBtn.disabled = true;
+        colorPicker.disabled = true;
+
+        const n = data.length;
+
+        if (currentI >= n) {
+            bars.forEach(b => b.classList.add('sorted'));
+            stepBtn.disabled = true;
+            resetBtn.disabled = false;
+            colorPicker.disabled = false;
+            isSorting = false;
+            return;
+        }
+
+        if (key === null) {
+            key = data[currentI];
+            currentJ = currentI - 1;
+        }
+
+        if (currentJ >= 0 && data[currentJ] > key) {
+            bars[currentJ].classList.add('comparing');
+
+            await sleep(150);
+
+            data[currentJ + 1] = data[currentJ];
+            updateBar(bars[currentJ + 1], data[currentJ + 1]);
+
+            bars[currentJ].classList.remove('comparing');
+            currentJ--;
+        } else {
+            data[currentJ + 1] = key;
+            updateBar(bars[currentJ + 1], key);
+
+            key = null;
+            currentI++;
+        }
+
+        isSorting = false;
+    }
+
+    function updateBar(barElement, value) {
+        barElement.style.height = `${value * 2}px`;
+        barElement.innerText = value;
+    }
+
+    resetData();
+</script>

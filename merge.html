@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>合併排序視覺化</title>
+
+<style>
+:root { --primary-color: #3498db; }
+
+body {
+    font-family: 'Segoe UI';
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+    background: #f0f2f5;
+}
+
+.container {
+    display: flex;
+    align-items: flex-end;
+    height: 250px;
+    gap: 8px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+}
+
+.bar {
+    width: 35px;
+    background: var(--primary-color);
+    color: white;
+    text-align: center;
+}
+
+.bar.comparing { background: #e74c3c; }
+.bar.sorted { background: #2ecc71; }
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>合併排序法視覺化</h2>
+
+<div class="container" id="bar-container"></div>
+
+<div class="controls">
+    <button onclick="startSort()">開始排序</button>
+    <button onclick="stepSort()">下一步</button>
+    <button onclick="resetData()">重置</button>
+    <input type="color" onchange="changeColor(this.value)">
+</div>
+
+<script>
+let data = [];
+let bars = [];
+let steps = [];
+let stepIndex = 0;
+let isSorting = false;
+
+const container = document.getElementById('bar-container');
+
+function changeColor(color) {
+    document.documentElement.style.setProperty('--primary-color', color);
+}
+
+function resetData() {
+    data = Array.from({length:10},()=>Math.floor(Math.random()*90)+10);
+    renderBars();
+    steps = [];
+    stepIndex = 0;
+    generateSteps([...data]);
+}
+
+function renderBars() {
+    container.innerHTML = '';
+    bars = [];
+    data.forEach(v=>{
+        const bar=document.createElement('div');
+        bar.className='bar';
+        bar.style.height=v*2+'px';
+        bar.innerText=v;
+        container.appendChild(bar);
+        bars.push(bar);
+    });
+}
+
+function updateBars(arr){
+    arr.forEach((v,i)=>{
+        bars[i].style.height=v*2+'px';
+        bars[i].innerText=v;
+    });
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ===== Merge Sort 產生步驟 ===== */
+function generateSteps(arr){
+    function mergeSort(a,l,r){
+        if(l>=r) return;
+        let m=Math.floor((l+r)/2);
+        mergeSort(a,l,m);
+        mergeSort(a,m+1,r);
+        merge(a,l,m,r);
+    }
+
+    function merge(a,l,m,r){
+        let left=a.slice(l,m+1);
+        let right=a.slice(m+1,r+1);
+        let i=0,j=0,k=l;
+
+        while(i<left.length && j<right.length){
+            if(left[i]<=right[j]){
+                a[k++]=left[i++];
+            }else{
+                a[k++]=right[j++];
+            }
+            steps.push([...a]); // 記錄每一步
+        }
+
+        while(i<left.length){
+            a[k++]=left[i++];
+            steps.push([...a]);
+        }
+
+        while(j<right.length){
+            a[k++]=right[j++];
+            steps.push([...a]);
+        }
+    }
+
+    mergeSort(arr,0,arr.length-1);
+}
+
+/* ===== 自動播放 ===== */
+async function startSort(){
+    if(isSorting) return;
+    isSorting=true;
+
+    for(let i=0;i<steps.length;i++){
+        updateBars(steps[i]);
+        await sleep(200);
+    }
+
+    bars.forEach(b=>b.classList.add('sorted'));
+    isSorting=false;
+}
+
+/* ===== 單步 ===== */
+function stepSort(){
+    if(stepIndex>=steps.length) return;
+
+    updateBars(steps[stepIndex]);
+    stepIndex++;
+
+    if(stepIndex===steps.length){
+        bars.forEach(b=>b.classList.add('sorted'));
+    }
+}
+
+resetData();
+</script>
+
+</body>
+</html>

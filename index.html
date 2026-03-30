@@ -2,64 +2,132 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>排序視覺化首頁</title>
 
 <style>
-body{
-    font-family:Segoe UI;
-    background:#f0f2f5;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
+    /* 定義全域變數，方便之後改顏色 */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --card-bg: rgba(255, 255, 255, 0.9);
+        --text-color: #2d3436;
+    }
 
-.card{
-    background:white;
-    padding:40px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
-    text-align:center;
-}
+    body {
+        font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        background: var(--primary-gradient);
+        background-attachment: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        overflow: hidden;
+    }
 
-h1{
-    margin-bottom:30px;
-}
+    /* 增加一點裝飾用的背景圓圈，增加空間感 */
+    body::before {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        top: -100px;
+        right: -100px;
+        z-index: -1;
+    }
 
-.btn-group{
-    display:flex;
-    gap:20px;
-    justify-content:center;
-}
+    .card {
+        background: var(--card-bg);
+        padding: 50px 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px); /* 毛玻璃效果 */
+        text-align: center;
+        max-width: 600px;
+        width: 90%;
+        transform: translateY(0);
+        transition: transform 0.3s ease;
+    }
 
-a{
-    display:inline-block;
-    padding:12px 25px;
-    background:#3498db;
-    color:white;
-    text-decoration:none;
-    border-radius:25px;
-    font-size:18px;
-    transition:0.3s;
-}
+    .card:hover {
+        transform: translateY(-5px);
+    }
 
-a:hover{
-    background:#2980b9;
-}
+    h1 {
+        color: var(--text-color);
+        margin-bottom: 40px;
+        font-size: 2.2rem;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: column; /* 手機優先：垂直排列 */
+        gap: 15px;
+        justify-content: center;
+    }
+
+    /* 電腦版改回水平排列 */
+    @media (min-width: 600px) {
+        .btn-group {
+            flex-direction: row;
+        }
+    }
+
+    a {
+        display: inline-block;
+        padding: 15px 28px;
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* 不同演算法給予不同風格 */
+    .btn-bubble { background: #ff7675; }
+    .btn-selection { background: #00cec9; }
+    .btn-insertion { background: #6c5ce7; }
+
+    a:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        filter: brightness(1.1);
+    }
+
+    a:active {
+        transform: translateY(0);
+    }
+
+    /* 簡單的小動畫 */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+        animation: fadeIn 0.8s ease-out;
+    }
 </style>
 </head>
 
 <body>
 
 <div class="card">
-<h1>排序演算法視覺化</h1>
+    <h1>排序演算法視覺化</h1>
 
-<div class="btn-group">
-    <a href="bubblesort.html">氣泡排序</a>
-    <a href="selection.html">選擇排序</a>
-    <a href="insertion.html">插入排序</a>
-</div>
-
+    <div class="btn-group">
+        <a href="bubblesort.html" class="btn-bubble">氣泡排序法</a>
+        <a href="selection.html" class="btn-selection">選擇排序法</a>
+        <a href="insertion.html" class="btn-insertion">插入排序法</a>
+    </div>
 </div>
 
 </body>

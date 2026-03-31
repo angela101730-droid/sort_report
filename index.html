@@ -1,136 +1,187 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>排序視覺化首頁</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排序演算法視覺化</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-light: #f8fafc;
+        }
 
-<style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
-        --card-bg: rgba(255, 255, 255, 0.95);
-        --text-color: #1e293b;
-    }
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    body {
-        font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-        background: var(--primary-gradient);
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        overflow: hidden;
-    }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--primary-gradient);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: var(--text-light);
+        }
 
-    /* 裝飾背景球 */
-    .bg-circle {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.05);
-        z-index: -1;
-        animation: float 10s infinite alternate ease-in-out;
-    }
+        /* 背景動態球體 */
+        .bg-blobs {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
 
-    @keyframes float {
-        from { transform: translate(0, 0); }
-        to { transform: translate(20px, 40px); }
-    }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: move 20s infinite alternate;
+        }
 
-    .card {
-        background: var(--card-bg);
-        padding: 50px 30px;
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        animation: slideUp 0.6s ease-out;
-    }
+        .blob-1 { width: 400px; height: 400px; background: #4f46e5; top: -10%; left: -10%; }
+        .blob-2 { width: 350px; height: 350px; background: #7c3aed; bottom: -10%; right: -5%; animation-delay: -5s; }
+        .blob-3 { width: 250px; height: 250px; background: #0ea5e9; top: 40%; right: 10%; animation-delay: -10s; }
 
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        @keyframes move {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(50px, 100px) rotate(30deg); }
+        }
 
-    h1 {
-        color: var(--text-color);
-        margin-top: 0;
-        margin-bottom: 35px;
-        font-size: 1.8rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-    }
+        .card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 32px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
 
-    .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
 
-    a {
-        text-decoration: none;
-        color: white;
-        padding: 18px;
-        border-radius: 16px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
+        h1 {
+            margin-bottom: 8px;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    /* 按鈕顏色定義 */
-    .btn-bubble { background: #f43f5e; }    /* 玫瑰紅 */
-    .btn-selection { background: #06b6d4; } /* 寶石藍 */
-    .btn-insertion { background: #8b5cf6; } /* 紫羅蘭 */
-    .btn-merge { background: #10b981; }     /* 翡翠綠 */
-    /* 新增：引力沉澱排序專屬顏色 */
-    .btn-gravity { background: linear-gradient(90deg, #0f172a 0%, #334155 100%); border: 1px solid rgba(255,255,255,0.1); } 
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
 
-    a:hover {
-        transform: scale(1.03);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-        filter: brightness(1.1);
-    }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
 
-    a:active {
-        transform: scale(0.98);
-    }
+        a {
+            position: relative;
+            text-decoration: none;
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    a::before {
-        content: "◈";
-        margin-right: 10px;
-        font-size: 1.2rem;
-        opacity: 0.8;
-    }
+        /* 不同的按鈕主題色 */
+        .btn-bubble { background: linear-gradient(45deg, #f43f5e, #fb7185); }
+        .btn-selection { background: linear-gradient(45deg, #0ea5e9, #22d3ee); }
+        .btn-insertion { background: linear-gradient(45deg, #8b5cf6, #a78bfa); }
+        .btn-merge { background: linear-gradient(45deg, #10b981, #34d399); }
+        .btn-gravity { background: linear-gradient(45deg, #334155, #475569); }
 
-    /* 針對引力排序的特殊符號 */
-    .btn-gravity::before {
-        content: "✦"; 
-    }
+        /* 滑過時的高亮掃光效果 */
+        a::after {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
 
-</style>
+        a:hover::after {
+            left: 150%;
+        }
+
+        a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        a:active {
+            transform: translateY(1px);
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+    </style>
 </head>
 
 <body>
 
-<div class="bg-circle" style="width: 300px; height: 300px; top: -100px; left: -100px;"></div>
-<div class="bg-circle" style="width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: -2s;"></div>
+<div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
 
 <div class="card">
-    <h1>排序演算法視覺化</h1>
+    <h1>Algorithm</h1>
+    <p class="subtitle">排序演算法視覺化平台</p>
 
     <div class="btn-group">
-        <a href="bubblesort.html" class="btn-bubble">氣泡排序法</a>
-        <a href="selection.html" class="btn-selection">選擇排序法</a>
-        <a href="insertion.html" class="btn-insertion">插入排序法</a>
-        <a href="merge.html" class="btn-merge">合併排序法</a>
-        <a href="gravity.html" class="btn-gravity">引力沉澱排序</a>
+        <a href="bubblesort.html" class="btn-bubble">
+            <span class="icon">🫧</span> 氣泡排序法
+        </a>
+        <a href="selection.html" class="btn-selection">
+            <span class="icon">🎯</span> 選擇排序法
+        </a>
+        <a href="insertion.html" class="btn-insertion">
+            <span class="icon">🃏</span> 插入排序法
+        </a>
+        <a href="merge.html" class="btn-merge">
+            <span class="icon">🌳</span> 合併排序法
+        </a>
+        <a href="gravity.html" class="btn-gravity">
+            <span class="icon">🌌</span> 引力沉澱排序
+        </a>
     </div>
 </div>
 
